@@ -1,19 +1,18 @@
+import { sql } from "drizzle-orm";
 import {
+  check,
+  decimal,
+  index,
+  int,
+  json,
+  mysqlEnum,
   mysqlTable,
   primaryKey,
-  int,
-  varchar,
   text,
-  json,
-  index,
-  tinyint,
-  decimal,
-  check,
   timestamp,
-  mysqlEnum,
-  unique,
+  tinyint,
+  varchar,
 } from "drizzle-orm/mysql-core";
-import { sql } from "drizzle-orm";
 
 export const ingredients = mysqlTable(
   "Ingredients",
@@ -202,7 +201,7 @@ export const tags = mysqlTable(
   "Tags",
   {
     tagId: int("TagID").autoincrement().notNull(),
-    tag: varchar({ length: 255 }).notNull(),
+    name: varchar({ length: 255 }).notNull(),
   },
   (table) => {
     return {
@@ -257,11 +256,12 @@ export const users = mysqlTable(
   "Users",
   {
     userId: int("UserID").autoincrement().notNull(),
-    name: varchar({ length: 255 }).notNull(),
     email: varchar({ length: 255 }).notNull(),
     authProvider: mysqlEnum(["local", "google", "facebook"]).notNull(),
     role: mysqlEnum(["admin", "editor", "viewer"]).default("viewer"),
     dateJoined: timestamp({ mode: "string" }).defaultNow(),
+    firstName: varchar({ length: 50 }).notNull(),
+    lastName: varchar({ length: 50 }).notNull(),
   },
   (table) => {
     return {
@@ -269,7 +269,6 @@ export const users = mysqlTable(
         columns: [table.userId],
         name: "Users_UserID",
       }),
-      email: unique("email").on(table.email),
     };
   },
 );

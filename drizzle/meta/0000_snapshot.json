@@ -666,9 +666,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "tag": {
+        "name": {
           "autoincrement": false,
-          "name": "tag",
+          "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
@@ -833,13 +833,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "name": {
-          "autoincrement": false,
-          "name": "name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
         "email": {
           "autoincrement": false,
           "name": "email",
@@ -869,6 +862,20 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
+        },
+        "firstName": {
+          "autoincrement": false,
+          "name": "firstName",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lastName": {
+          "autoincrement": false,
+          "name": "lastName",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "compositePrimaryKeys": {
@@ -881,14 +888,7 @@
       },
       "indexes": {},
       "foreignKeys": {},
-      "uniqueConstraints": {
-        "email": {
-          "name": "email",
-          "columns": [
-            "email"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "checkConstraint": {}
     }
   },

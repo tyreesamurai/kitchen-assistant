@@ -73,7 +73,7 @@ CREATE TABLE `ShoppingLists` (
 --> statement-breakpoint
 CREATE TABLE `Tags` (
 	`TagID` int AUTO_INCREMENT NOT NULL,
-	`tag` varchar(255) NOT NULL,
+	`name` varchar(255) NOT NULL,
 	CONSTRAINT `Tags_TagID` PRIMARY KEY(`TagID`)
 );
 --> statement-breakpoint
@@ -96,13 +96,13 @@ CREATE TABLE `UserRecipes` (
 --> statement-breakpoint
 CREATE TABLE `Users` (
 	`UserID` int AUTO_INCREMENT NOT NULL,
-	`name` varchar(255) NOT NULL,
 	`email` varchar(255) NOT NULL,
 	`authProvider` enum('local','google','facebook') NOT NULL,
 	`role` enum('admin','editor','viewer') DEFAULT 'viewer',
 	`dateJoined` timestamp DEFAULT (CURRENT_TIMESTAMP),
-	CONSTRAINT `Users_UserID` PRIMARY KEY(`UserID`),
-	CONSTRAINT `email` UNIQUE(`email`)
+	`firstName` varchar(50) NOT NULL,
+	`lastName` varchar(50) NOT NULL,
+	CONSTRAINT `Users_UserID` PRIMARY KEY(`UserID`)
 );
 --> statement-breakpoint
 ALTER TABLE `IngredientTags` ADD CONSTRAINT `ingredienttags_ibfk_1` FOREIGN KEY (`IngredientID`) REFERENCES `Ingredients`(`IngredientID`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
