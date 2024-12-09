@@ -1,8 +1,8 @@
 "use client";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,61 +14,72 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
-const FormSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  description: z.string().min(2, {
-    message: "Description must be at least 2 characters.",
-  }),
+const formSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().optional(),
 });
 
 export default function IngredientForm() {
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    fetch("/api/ingredients", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      console.log(values);
+      fetch("/api/ingredients", {
+        method: "POST",
+        body: JSON.stringify(values),
+      })
+        .then((response) => response.json())
+        .then((data) => console.log(data));
+    } catch (error) {
+      console.error("Form submission error", error);
+      toast.error("Failed to submit the form. Please try again.");
+    }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8 max-w-3xl mx-auto py-10"
+      >
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
-            <>
-              <FormItem>
-                <FormLabel>Ingredient Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingredient Name" {...field} />
-                </FormControl>
-                <FormDescription>
-                  This will be sent to the server.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Input placeholder="Description" {...field} />
-                </FormControl>
-                <FormDescription>
-                  This will be sent to the server.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            </>
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingredient Name" type="text" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Placeholder"
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                You can list important information about your ingredient.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
           )}
         />
         <Button type="submit">Submit</Button>

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const result = await db.insert(recipes).values(data).$returningId();
+  const result = await db.insert(recipes).values(data);
 
   return NextResponse.json(result, { status: 201 });
 }
