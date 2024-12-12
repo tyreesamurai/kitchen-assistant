@@ -14,7 +14,11 @@ export async function GET() {
   // }
 
   const result = await db
-    .select({ firstName: users.firstName, lastName: users.lastName })
+    .select({
+      userId: users.userId,
+      firstName: users.firstName,
+      lastName: users.lastName,
+    })
     .from(users);
 
   if (!result) {
@@ -28,6 +32,10 @@ const insertSchema = createInsertSchema(users);
 
 export async function POST(request: Request) {
   const data = await request.json();
+
+  if (!("authProvider" in data)) {
+    data.authProvider = "local";
+  }
 
   try {
     insertSchema.parse(data);
