@@ -2,38 +2,45 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { recipes } from "@/../drizzle/schema";
 import { createSelectSchema } from "drizzle-zod";
+import Image from "next/image";
 
-const schema = typeof createSelectSchema(recipes);
+const recipeSchema = createSelectSchema(recipes);
 
-export default async function Page() {
+async function fetchRecipes() {
   const response = await fetch("http://localhost:3000/api/recipes");
+  const recipes = await response.json();
 
-  const data = response.json();
+  return recipeSchema.array().parse(recipes);
+}
 
+export default async function Recipes() {
+  const recipes = await fetchRecipes();
   return (
     <>
-      {data.map((recipe) => {
-        return (
-          <Card key={recipe.recipeId}>
-            <CardHeader>
-              <CardTitle>{recipe.name}</CardTitle>
+      <div className="flex justify-around items-center">
+        {recipes.map((recipe) => {
+          const imageUrl =
+            recipe.imageUrl ||
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/1024px-No_image_available.svg.png";
+          return (
+            <Card key={recipe.recipeId} className="flex text-center mt-2 pt-5">
+              <CardContent className="flex justify-center">
+                <Image src={imageUrl} width={100} height={70} alt="" />
+              </CardContent>
+
+              <CardHeader>
+                <CardTitle>{recipe.name}</CardTitle>
+              </CardHeader>
               <CardDescription>{recipe.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p>Card Content</p>
-            </CardContent>
-            <CardFooter>
-              <p>Card Footer</p>
-            </CardFooter>
-          </Card>
-        );
-      })}
+            </Card>
+          );
+        })}
+      </div>
     </>
   );
 }
