@@ -3,7 +3,7 @@ import { z } from "zod";
 const RecipeSchema = z.object({
   id: z.coerce.number(),
   name: z.string(),
-  cookTime: z.coerce.number().nullable(),
+  cookTime: z.coerce.number().int().nullable(),
   category: z.string().nullable(),
   cuisine: z.string().nullable(),
   instructions: z.string().nullable(),
@@ -16,7 +16,7 @@ const RecipeSchema = z.object({
       protein: z.coerce.number(),
     })
     .nullable(),
-  isPublished: z.coerce.boolean().optional(),
+  isPublic: z.coerce.boolean().optional(),
   imageUrl: z.string().nullable(),
 });
 
