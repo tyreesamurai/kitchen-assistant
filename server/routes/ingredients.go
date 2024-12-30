@@ -17,7 +17,7 @@ type Ingredient struct {
 	ImageURL    *string    `json:"imageUrl"`
 }
 
-func IngredientsController(router *gin.Engine, db *gorm.DB) {
+func IngredientController(router *gin.Engine, db *gorm.DB) {
 	ingredients := router.Group("/ingredients")
 	{
 		ingredients.GET("/", func(ctx *gin.Context) { getAllIngredients(ctx, db) })

@@ -16,7 +16,7 @@ type RecipeIngredient struct {
 	UnitType     *string  `json:"unitType"`
 }
 
-func RecipeIngredientsController(router *gin.Engine, db *gorm.DB) {
+func RecipeIngredientController(router *gin.Engine, db *gorm.DB) {
 	recipeIngredients := router.Group("/recipe-ingredients")
 	{
 		recipeIngredients.GET("/recipe/:recipeId", func(ctx *gin.Context) { getIngredientsFromRecipeID(ctx, db) })

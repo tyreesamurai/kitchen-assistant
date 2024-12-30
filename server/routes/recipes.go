@@ -44,7 +44,7 @@ func (n *Nutrition) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, n)
 }
 
-func RecipesController(router *gin.Engine, db *gorm.DB) {
+func RecipeController(router *gin.Engine, db *gorm.DB) {
 	recipes := router.Group("/recipes")
 	{
 		recipes.GET("/", func(ctx *gin.Context) { getAllRecipes(ctx, db) })

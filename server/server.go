@@ -42,9 +42,10 @@ func main() {
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	router.Use(cors.New(config))
 
-	routes.IngredientsController(router, db)
-	routes.RecipesController(router, db)
-	routes.RecipeIngredientsController(router, db)
+	routes.IngredientController(router, db)
+	routes.RecipeController(router, db)
+	routes.RecipeIngredientController(router, db)
+	routes.TagController(router, db)
 
 	router.Run(":8080")
 }
