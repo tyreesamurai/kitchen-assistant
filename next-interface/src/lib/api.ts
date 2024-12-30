@@ -124,7 +124,7 @@ const api = {
       return recipe as Recipe;
     },
     fetchIngredientsById: async (id: number) => {
-      const json = await api.get(`/recipeingredients/recipe/${id}`);
+      const json = await api.get(`/recipe-ingredients/recipe/${id}`);
       const ingredients = json.map((ingredient: Ingredient) =>
         validateIngredient(ingredient),
       );

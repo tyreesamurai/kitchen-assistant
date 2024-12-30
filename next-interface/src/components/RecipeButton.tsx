@@ -1,16 +1,12 @@
-"use client";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function RecipeButton(props: { recipeId: number }) {
-  const router = useRouter();
   return (
-    <Button
-      onClick={() => {
-        router.push(`/recipes/ingredients/${props.recipeId}`);
-      }}
-    >
-      See Recipe Ingredients
+    <Button>
+      <Link href={`/recipes/ingredients/${props.recipeId}`}>
+        See Ingredients
+      </Link>
     </Button>
   );
 }

@@ -9,10 +9,11 @@ import (
 )
 
 type RecipeIngredient struct {
-	RecipeID     uint    `json:"recipeId" gorm:"primaryKey;autoIncrement:false"`
-	IngredientID uint    `json:"ingredientId" gorm:"primaryKey;autoIncrement:false"`
-	Quantity     float64 `json:"quantity"`
-	UnitID       uint    `json:"unitId"`
+	RecipeID     uint     `json:"recipeId" gorm:"primaryKey;autoIncrement:false"`
+	IngredientID uint     `json:"ingredientId" gorm:"primaryKey;autoIncrement:false"`
+	Quantity     *float64 `json:"quantity"`
+	UnitName     *string  `json:"unitName"`
+	UnitType     *string  `json:"unitType"`
 }
 
 func RecipeIngredientsController(router *gin.Engine, db *gorm.DB) {
@@ -20,6 +21,7 @@ func RecipeIngredientsController(router *gin.Engine, db *gorm.DB) {
 	{
 		recipeIngredients.GET("/recipe/:recipeId", func(ctx *gin.Context) { getIngredientsFromRecipeID(ctx, db) })
 		recipeIngredients.GET("/ingredient/:ingredientId", func(ctx *gin.Context) { getRecipesFromIngredientID(ctx, db) })
+		recipeIngredients.POST("/", func(ctx *gin.Context) { createRecipeIngredient(ctx, db) })
 	}
 }
 
@@ -71,4 +73,18 @@ func getRecipesFromIngredientID(ctx *gin.Context, db *gorm.DB) {
 		return
 	}
 	ctx.JSON(http.StatusOK, Recipes)
+}
+
+func createRecipeIngredient(ctx *gin.Context, db *gorm.DB) {
+	var recipeIngredient RecipeIngredient
+	if err := ctx.ShouldBindJSON(&recipeIngredient); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	result := db.Create(&recipeIngredient)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	ctx.JSON(http.StatusCreated, recipeIngredient)
 }

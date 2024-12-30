@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/card";
 import { Ingredient } from "@/lib/types";
 
-export async function IngredientCard(props: { ingredient: Ingredient }) {
+export function IngredientCard(props: { ingredient: Ingredient }) {
   return (
     <>
       <Card className="flex-col pt-5 text-center justify-center items-center">
