@@ -23,6 +23,8 @@ func IngredientsController(router *gin.Engine, db *gorm.DB) {
 		ingredients.GET("/", func(ctx *gin.Context) { getAllIngredients(ctx, db) })
 		ingredients.POST("/", func(ctx *gin.Context) { createIngredient(ctx, db) })
 		ingredients.GET("/:param", func(ctx *gin.Context) { getIngredient(ctx, db) })
+		ingredients.PUT("/:param", func(ctx *gin.Context) { updateIngredient(ctx, db) })
+		ingredients.DELETE("/:param", func(ctx *gin.Context) { deleteIngredient(ctx, db) })
 	}
 }
 
@@ -58,20 +60,57 @@ func createIngredient(ctx *gin.Context, db *gorm.DB) {
 }
 
 func getIngredient(ctx *gin.Context, db *gorm.DB) {
-	param := ctx.Param("param")
+	ingredient, err := findIngredientByParam(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	}
+	ctx.JSON(http.StatusOK, ingredient)
+}
 
+func updateIngredient(ctx *gin.Context, db *gorm.DB) {
+	ingredient, err := findIngredientByParam(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	if err := ctx.ShouldBindJSON(&ingredient); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	result := db.Save(&ingredient)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, ingredient)
+}
+
+func deleteIngredient(ctx *gin.Context, db *gorm.DB) {
+	ingredient, err := findIngredientByParam(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	result := db.Delete(&ingredient)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Recipe deleted"})
+}
+
+func findIngredientByParam(ctx *gin.Context, db *gorm.DB) (*Ingredient, error) {
+	param := ctx.Param("param")
 	var ingredient Ingredient
 	if id, err := strconv.Atoi(param); err == nil {
 		if err := db.First(&ingredient, id).Error; err != nil {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
+			return nil, err
 		}
 	} else {
 		regex := regexp.MustCompile("%20")
 		if err := db.Where("name = ?", regex.ReplaceAllString(param, " ")).First(&ingredient).Error; err != nil {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
+			return nil, err
 		}
 	}
-	ctx.JSON(http.StatusOK, ingredient)
+	return &ingredient, nil
 }

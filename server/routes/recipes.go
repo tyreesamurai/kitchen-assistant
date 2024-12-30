@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -18,7 +21,7 @@ type Recipe struct {
 	Instructions *string    `json:"instructions"`
 	Description  *string    `json:"description"`
 	Nutrition    *Nutrition `json:"nutrition" gorm:"type:json"`
-	IsPublic     *bool      `json:"isPublished"`
+	IsPublic     *bool      `json:"isPublic"`
 	ImageURL     *string    `json:"imageUrl"`
 }
 
@@ -26,7 +29,19 @@ type Nutrition struct {
 	Calories int `json:"calories"`
 	Fats     int `json:"fats"`
 	Carbs    int `json:"carbs"`
-	Proteins int `json:"proteins"`
+	Protein  int `json:"protein"`
+}
+
+func (n Nutrition) Value() (driver.Value, error) {
+	return json.Marshal(n)
+}
+
+func (n *Nutrition) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("type assertion to []byte failed")
+	}
+	return json.Unmarshal(bytes, n)
 }
 
 func RecipesController(router *gin.Engine, db *gorm.DB) {
@@ -34,7 +49,9 @@ func RecipesController(router *gin.Engine, db *gorm.DB) {
 	{
 		recipes.GET("/", func(ctx *gin.Context) { getAllRecipes(ctx, db) })
 		recipes.POST("/", func(ctx *gin.Context) { createRecipe(ctx, db) })
+		recipes.PUT("/:param", func(ctx *gin.Context) { updateRecipe(ctx, db) })
 		recipes.GET("/:param", func(ctx *gin.Context) { getRecipe(ctx, db) })
+		recipes.DELETE("/:param", func(ctx *gin.Context) { deleteRecipe(ctx, db) })
 	}
 }
 
@@ -69,21 +86,60 @@ func createRecipe(ctx *gin.Context, db *gorm.DB) {
 }
 
 func getRecipe(ctx *gin.Context, db *gorm.DB) {
+	recipe, err := findRecipeByParam(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, recipe)
+}
+
+func updateRecipe(ctx *gin.Context, db *gorm.DB) {
+	recipe, err := findRecipeByParam(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := ctx.ShouldBindJSON(&recipe); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if result := db.Save(&recipe); result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, recipe)
+}
+
+func deleteRecipe(ctx *gin.Context, db *gorm.DB) {
+	recipe, err := findRecipeByParam(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	if result := db.Delete(&recipe); result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Recipe deleted"})
+}
+
+func findRecipeByParam(ctx *gin.Context, db *gorm.DB) (*Recipe, error) {
 	param := ctx.Param("param")
 	var recipe Recipe
-
 	if id, err := strconv.Atoi(param); err == nil {
 		if err := db.First(&recipe, id).Error; err != nil {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
+			return nil, err
 		}
 	} else {
 		regex := regexp.MustCompile("%20")
 		if err := db.Where("name = ?", regex.ReplaceAllString(param, " ")).First(&recipe).Error; err != nil {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
+			return nil, err
 		}
 	}
-
-	ctx.JSON(http.StatusOK, recipe)
+	return &recipe, nil
 }

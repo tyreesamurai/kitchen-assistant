@@ -35,10 +35,19 @@ const IngredientSchema = z.object({
   imageUrl: z.string().nullable(),
 });
 
+const RecipeCreatorSchema = RecipeSchema.omit({ id: true });
+const IngredientCreatorSchema = IngredientSchema.omit({ id: true });
+
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type Recipes = z.infer<z.ZodArray<typeof RecipeSchema>>;
+export type RecipeCreator = z.infer<typeof RecipeCreatorSchema>;
 export type Ingredient = z.infer<typeof IngredientSchema>;
 export type Ingredients = z.infer<z.ZodArray<typeof IngredientSchema>>;
+export type IngredientCreator = z.infer<typeof IngredientCreatorSchema>;
 export const validateRecipe = (data: unknown) => RecipeSchema.parse(data);
+export const validateRecipeCreator = (data: unknown) =>
+  RecipeCreatorSchema.parse(data);
 export const validateIngredient = (data: unknown) =>
   IngredientSchema.parse(data);
+export const validateIngredientCreator = (data: unknown) =>
+  IngredientCreatorSchema.parse(data);

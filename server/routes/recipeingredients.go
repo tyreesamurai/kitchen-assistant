@@ -16,7 +16,7 @@ type RecipeIngredient struct {
 }
 
 func RecipeIngredientsController(router *gin.Engine, db *gorm.DB) {
-	recipeIngredients := router.Group("/recipeingredients")
+	recipeIngredients := router.Group("/recipe-ingredients")
 	{
 		recipeIngredients.GET("/recipe/:recipeId", func(ctx *gin.Context) { getIngredientsFromRecipeID(ctx, db) })
 		recipeIngredients.GET("/ingredient/:ingredientId", func(ctx *gin.Context) { getRecipesFromIngredientID(ctx, db) })
@@ -30,10 +30,10 @@ func getIngredientsFromRecipeID(ctx *gin.Context, db *gorm.DB) {
 		return
 	}
 	var Ingredients []Ingredient
-	result := db.Table("RecipeIngredients").
-		Joins("JOIN ingredients ON RecipeIngredients.IngredientID = ingredients.id").
-		Where("RecipeIngredients.RecipeID = ?", recipeID).
-		Select("ingredients.*").
+	result := db.Table("recipe_ingredient").
+		Joins("JOIN ingredient ON recipe_ingredient.ingredient_id = ingredient.id").
+		Where("recipe_ingredient.recipe_id = ?", recipeID).
+		Select("ingredient.*").
 		Find(&Ingredients)
 
 	if result.Error != nil {
@@ -56,10 +56,10 @@ func getRecipesFromIngredientID(ctx *gin.Context, db *gorm.DB) {
 		return
 	}
 	var Recipes []Recipe
-	result := db.Table("RecipeIngredients").
-		Joins("JOIN recipes ON RecipeIngredients.RecipeID = recipes.id").
-		Where("RecipeIngredients.IngredientID = ?", ingredientID).
-		Select("recipes.*").
+	result := db.Table("recipe_ingredient").
+		Joins("JOIN recipe ON recipe_ingredient.recipe_id = recipe.id").
+		Where("recipe_ingredient.ingredient_id = ?", ingredientID).
+		Select("recipe.*").
 		Find(&Recipes)
 
 	if result.Error != nil {
