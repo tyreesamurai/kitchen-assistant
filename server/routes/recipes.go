@@ -16,8 +16,6 @@ type Recipe struct {
 	ID           uint       `json:"id"`
 	Name         string     `json:"name"`
 	CookTime     *int       `json:"cookTime"`
-	Category     *string    `json:"category"`
-	Cuisine      *string    `json:"cuisine"`
 	Instructions *string    `json:"instructions"`
 	Description  *string    `json:"description"`
 	Nutrition    *Nutrition `json:"nutrition" gorm:"type:json"`
