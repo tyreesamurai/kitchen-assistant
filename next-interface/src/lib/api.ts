@@ -5,8 +5,15 @@ import {
   Ingredient,
   Ingredients,
   IngredientCreator,
+  Tag,
+  Tags,
+  TagCreator,
   validateRecipe,
+  validateRecipeCreator,
   validateIngredient,
+  validateIngredientCreator,
+  validateTag,
+  validateTagCreator,
 } from "@/lib/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -74,8 +81,20 @@ const api = {
       const ingredient = validateIngredient(json);
       return ingredient as Ingredient;
     },
+    fetchByName: async (name: string) => {
+      const json = await api.get(`/ingredients/${name.replaceAll(" ", "-")}`);
+      const ingredient = validateIngredient(json);
+      return ingredient as Ingredient;
+    },
     fetchRecipesById: async (id: number) => {
-      const json = await api.get(`/recipeingredients/ingredient/${id}`);
+      const json = await api.get(`/ingredients/${id}/recipes`);
+      const recipes = json.map((recipe: Recipe) => validateRecipe(recipe));
+      return recipes as Recipes;
+    },
+    fetchRecipesByName: async (name: string) => {
+      const json = await api.get(
+        `/ingredients/${name.replaceAll(" ", "-")}/recipes`,
+      );
       const recipes = json.map((recipe: Recipe) => validateRecipe(recipe));
       return recipes as Recipes;
     },
@@ -94,7 +113,7 @@ const api = {
     },
     updateByIngredient: async (ingredient: IngredientCreator) => {
       const json = await api.put(
-        `/ingredients/${ingredient.name.replaceAll(" ", "%20")}`,
+        `/ingredients/${ingredient.name.replaceAll(" ", "-")}`,
         JSON.stringify(ingredient),
       );
       const newIngredient = validateIngredient(json);
@@ -106,7 +125,7 @@ const api = {
     },
     deleteByIngredient: async (ingredient: IngredientCreator) => {
       const json = await api.delete(
-        `/ingredients/${ingredient.name.replaceAll(" ", "%20")}`,
+        `/ingredients/${ingredient.name.replaceAll(" ", "-")}`,
       );
       console.log(json);
     },
@@ -123,12 +142,36 @@ const api = {
       const recipe = validateRecipe(json);
       return recipe as Recipe;
     },
+    fetchByName: async (name: string) => {
+      const json = await api.get(`/recipes/${name.replaceAll(" ", "-")}`);
+      const recipe = validateRecipe(json);
+      return recipe as Recipe;
+    },
     fetchIngredientsById: async (id: number) => {
-      const json = await api.get(`/recipe-ingredients/recipe/${id}`);
+      const json = await api.get(`/recipes/${id}/ingredients`);
       const ingredients = json.map((ingredient: Ingredient) =>
         validateIngredient(ingredient),
       );
       return ingredients as Ingredients;
+    },
+    fetchIngredientsByName: async (name: string) => {
+      const json = await api.get(
+        `/recipes/${name.replaceAll(" ", "-")}/ingredients`,
+      );
+      const ingredients = json.map((ingredient: Ingredient) =>
+        validateIngredient(ingredient),
+      );
+      return ingredients as Ingredients;
+    },
+    fetchTagsById: async (id: number) => {
+      const json = await api.get(`/recipes/${id}/tags`);
+      const tags = json.map((tag: Tag) => validateTag(tag));
+      return tags as Tags;
+    },
+    fetchTagsByName: async (name: string) => {
+      const json = await api.get(`/recipes/${name.replaceAll(" ", "-")}/tags`);
+      const tags = json.map((tag: Tag) => validateTag(tag));
+      return tags as Tags;
     },
     create: async (recipe: RecipeCreator) => {
       const json = await api.post("/recipes", JSON.stringify(recipe));
@@ -137,7 +180,7 @@ const api = {
     },
     updateByRecipe: async (recipe: RecipeCreator) => {
       const json = await api.put(
-        `/recipes/${recipe.name.replaceAll(" ", "%20")}`,
+        `/recipes/${recipe.name.replaceAll(" ", "-")}`,
         JSON.stringify(recipe),
       );
       const newRecipe = validateRecipe(json);
@@ -147,6 +190,60 @@ const api = {
       const json = await api.put(`/recipes/${id}`, JSON.stringify(recipe));
       const newRecipe = validateRecipe(json);
       return newRecipe as Recipe;
+    },
+    deleteById: async (id: number) => {
+      const json = await api.delete(`/recipes/${id}`);
+      console.log(json);
+    },
+    deleteByRecipe: async (recipe: RecipeCreator) => {
+      const json = await api.delete(
+        `/recipes/${recipe.name.replaceAll(" ", "-")}`,
+      );
+      console.log(json);
+    },
+  },
+
+  tags: {
+    fetchAll: async () => {
+      const json = await api.get("/tags");
+      const tags = json.map((tag: Tag) => validateTag(tag));
+      return tags as Tags;
+    },
+    fetchById: async (id: number) => {
+      const json = await api.get(`/tags/${id}`);
+      const tag = validateTag(json);
+      return tag as Tag;
+    },
+    fetchByName: async (name: string) => {
+      const json = await api.get(`/tags/${name.replaceAll(" ", "-")}`);
+      const tag = validateTag(json);
+      return tag as Tag;
+    },
+    fetchRecipesById: async (id: number) => {
+      const json = await api.get(`/tags/${id}/recipes`);
+      const recipes = json.map((recipe: Recipe) => validateRecipe(recipe));
+      return recipes as Recipes;
+    },
+    fetchRecipesByName: async (name: string) => {
+      const json = await api.get(`/tags/${name.replaceAll(" ", "-")}/recipes`);
+      const recipes = json.map((recipe: Recipe) => validateRecipe(recipe));
+      return recipes as Recipes;
+    },
+    fetchIngredientsById: async (id: number) => {
+      const json = await api.get(`/tags/${id}/ingredients`);
+      const ingredients = json.map((ingredient: Ingredient) =>
+        validateIngredient(ingredient),
+      );
+      return ingredients as Ingredients;
+    },
+    fetchIngredientsByName: async (name: string) => {
+      const json = await api.get(
+        `/tags/${name.replaceAll(" ", "-")}/ingredients`,
+      );
+      const ingredients = json.map((ingredient: Ingredient) =>
+        validateIngredient(ingredient),
+      );
+      return ingredients as Ingredients;
     },
   },
 };
