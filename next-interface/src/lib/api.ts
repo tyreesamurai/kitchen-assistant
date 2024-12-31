@@ -9,25 +9,22 @@ import {
   Tags,
   TagCreator,
   validateRecipe,
-  validateRecipeCreator,
   validateIngredient,
-  validateIngredientCreator,
   validateTag,
-  validateTagCreator,
 } from "@/lib/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const api = {
   get: async (endpoint: string) => {
-    const response = await fetch(`${BASE_URL}${endpoint}`);
+    const response = await fetch(`${BASE_URL}${endpoint}/`);
     if (!response.ok) {
       throw new Error(`Failed to fetch ${endpoint}, Error: ${response.status}`);
     }
     return await response.json();
   },
   post: async (endpoint: string, body: string) => {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${BASE_URL}${endpoint}/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -42,7 +39,7 @@ const api = {
     return await response.json();
   },
   put: async (endpoint: string, body: string) => {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${BASE_URL}${endpoint}/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -57,7 +54,7 @@ const api = {
     return await response.json();
   },
   delete: async (endpoint: string) => {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${BASE_URL}${endpoint}/`, {
       method: "DELETE",
     });
     if (!response.ok) {
@@ -123,9 +120,9 @@ const api = {
       const json = await api.delete(`/ingredients/${id}`);
       console.log(json);
     },
-    deleteByIngredient: async (ingredient: IngredientCreator) => {
+    deleteByName: async (name: string) => {
       const json = await api.delete(
-        `/ingredients/${ingredient.name.replaceAll(" ", "-")}`,
+        `/ingredients/${name.replaceAll(" ", "-")}`,
       );
       console.log(json);
     },
@@ -195,10 +192,8 @@ const api = {
       const json = await api.delete(`/recipes/${id}`);
       console.log(json);
     },
-    deleteByRecipe: async (recipe: RecipeCreator) => {
-      const json = await api.delete(
-        `/recipes/${recipe.name.replaceAll(" ", "-")}`,
-      );
+    deleteByName: async (name: string) => {
+      const json = await api.delete(`/recipes/${name.replaceAll(" ", "-")}`);
       console.log(json);
     },
   },
@@ -244,6 +239,32 @@ const api = {
         validateIngredient(ingredient),
       );
       return ingredients as Ingredients;
+    },
+    create: async (tag: TagCreator) => {
+      const json = await api.post("/tags", JSON.stringify(tag));
+      const newTag = validateTag(json);
+      return newTag as Tag;
+    },
+    updateById: async (id: number, tag: TagCreator) => {
+      const json = await api.put(`/tags/${id}`, JSON.stringify(tag));
+      const newTag = validateTag(json);
+      return newTag as Tag;
+    },
+    updateByTag: async (tag: TagCreator) => {
+      const json = await api.put(
+        `/tags/${tag.name.replaceAll(" ", "-")}`,
+        JSON.stringify(tag),
+      );
+      const newTag = validateTag(json);
+      return newTag as Tag;
+    },
+    deleteById: async (id: number) => {
+      const json = await api.delete(`/tags/${id}`);
+      console.log(json);
+    },
+    deleteByName: async (name: string) => {
+      const json = await api.delete(`/tags/${name.replaceAll(" ", "-")}`);
+      console.log(json);
     },
   },
 };
