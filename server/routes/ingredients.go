@@ -23,6 +23,8 @@ func IngredientController(router *gin.Engine, db *gorm.DB) {
 		ingredients.GET("/", func(ctx *gin.Context) { getAllIngredients(ctx, db) })
 		ingredients.POST("/", func(ctx *gin.Context) { createIngredient(ctx, db) })
 		ingredients.GET("/:param", func(ctx *gin.Context) { getIngredient(ctx, db) })
+		ingredients.GET("/:param/tags", func(ctx *gin.Context) { getTagsByIngredient(ctx, db) })
+		ingredients.GET("/:param/recipes", func(ctx *gin.Context) { getRecipesByIngredient(ctx, db) })
 		ingredients.PUT("/:param", func(ctx *gin.Context) { updateIngredient(ctx, db) })
 		ingredients.DELETE("/:param", func(ctx *gin.Context) { deleteIngredient(ctx, db) })
 	}
@@ -60,7 +62,7 @@ func createIngredient(ctx *gin.Context, db *gorm.DB) {
 }
 
 func getIngredient(ctx *gin.Context, db *gorm.DB) {
-	ingredient, err := findIngredientByParam(ctx, db)
+	ingredient, err := findIngredient(ctx, db)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
@@ -68,7 +70,7 @@ func getIngredient(ctx *gin.Context, db *gorm.DB) {
 }
 
 func updateIngredient(ctx *gin.Context, db *gorm.DB) {
-	ingredient, err := findIngredientByParam(ctx, db)
+	ingredient, err := findIngredient(ctx, db)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -86,7 +88,7 @@ func updateIngredient(ctx *gin.Context, db *gorm.DB) {
 }
 
 func deleteIngredient(ctx *gin.Context, db *gorm.DB) {
-	ingredient, err := findIngredientByParam(ctx, db)
+	ingredient, err := findIngredient(ctx, db)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -99,7 +101,29 @@ func deleteIngredient(ctx *gin.Context, db *gorm.DB) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Recipe deleted"})
 }
 
-func findIngredientByParam(ctx *gin.Context, db *gorm.DB) (*Ingredient, error) {
+func getTagsByIngredient(ctx *gin.Context, db *gorm.DB) {
+	ingredient, err := findIngredient(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Ingredient not found!"})
+	}
+	var Tags []Tag
+	result := db.Table("ingredient_tag").
+		Joins("JOIN tag ON ingredient_tag.tag_id = tag.id").
+		Where("ingredient_tag.ingredient_id = ?", ingredient.ID).
+		Select("tag.*").
+		Find(&Tags)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	if result.RowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "No tags found"})
+		return
+	}
+	ctx.JSON(http.StatusOK, Tags)
+}
+
+func findIngredient(ctx *gin.Context, db *gorm.DB) (*Ingredient, error) {
 	param := ctx.Param("param")
 	var ingredient Ingredient
 	if id, err := strconv.Atoi(param); err == nil {
@@ -107,7 +131,7 @@ func findIngredientByParam(ctx *gin.Context, db *gorm.DB) (*Ingredient, error) {
 			return nil, err
 		}
 	} else {
-		regex := regexp.MustCompile("%20")
+		regex := regexp.MustCompile("-")
 		if err := db.Where("name = ?", regex.ReplaceAllString(param, " ")).First(&ingredient).Error; err != nil {
 			return nil, err
 		}

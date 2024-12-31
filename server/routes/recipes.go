@@ -51,6 +51,8 @@ func RecipeController(router *gin.Engine, db *gorm.DB) {
 		recipes.POST("/", func(ctx *gin.Context) { createRecipe(ctx, db) })
 		recipes.PUT("/:param", func(ctx *gin.Context) { updateRecipe(ctx, db) })
 		recipes.GET("/:param", func(ctx *gin.Context) { getRecipe(ctx, db) })
+		recipes.GET("/:param/ingredients", func(ctx *gin.Context) { getIngredientsByRecipe(ctx, db) })
+		recipes.GET("/:param/tags", func(ctx *gin.Context) { getTagsByRecipe(ctx, db) })
 		recipes.DELETE("/:param", func(ctx *gin.Context) { deleteRecipe(ctx, db) })
 	}
 }
@@ -86,7 +88,7 @@ func createRecipe(ctx *gin.Context, db *gorm.DB) {
 }
 
 func getRecipe(ctx *gin.Context, db *gorm.DB) {
-	recipe, err := findRecipeByParam(ctx, db)
+	recipe, err := findRecipe(ctx, db)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -96,7 +98,7 @@ func getRecipe(ctx *gin.Context, db *gorm.DB) {
 }
 
 func updateRecipe(ctx *gin.Context, db *gorm.DB) {
-	recipe, err := findRecipeByParam(ctx, db)
+	recipe, err := findRecipe(ctx, db)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -115,7 +117,7 @@ func updateRecipe(ctx *gin.Context, db *gorm.DB) {
 }
 
 func deleteRecipe(ctx *gin.Context, db *gorm.DB) {
-	recipe, err := findRecipeByParam(ctx, db)
+	recipe, err := findRecipe(ctx, db)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -128,7 +130,30 @@ func deleteRecipe(ctx *gin.Context, db *gorm.DB) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Recipe deleted"})
 }
 
-func findRecipeByParam(ctx *gin.Context, db *gorm.DB) (*Recipe, error) {
+func getTagsByRecipe(ctx *gin.Context, db *gorm.DB) {
+	recipe, err := findRecipe(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Recipe not found!"})
+		return
+	}
+	var tags []Tag
+	result := db.Table("recipe_tag").
+		Joins("JOIN tag ON recipe_tag.tag_id = tag.id").
+		Where("recipe_tag.recipe_id = ?", recipe.ID).
+		Select("tag.*").
+		Find(&tags)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	if result.RowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "No tags found"})
+		return
+	}
+	ctx.JSON(http.StatusOK, tags)
+}
+
+func findRecipe(ctx *gin.Context, db *gorm.DB) (*Recipe, error) {
 	param := ctx.Param("param")
 	var recipe Recipe
 	if id, err := strconv.Atoi(param); err == nil {
@@ -136,7 +161,7 @@ func findRecipeByParam(ctx *gin.Context, db *gorm.DB) (*Recipe, error) {
 			return nil, err
 		}
 	} else {
-		regex := regexp.MustCompile("%20")
+		regex := regexp.MustCompile("-")
 		if err := db.Where("name = ?", regex.ReplaceAllString(param, " ")).First(&recipe).Error; err != nil {
 			return nil, err
 		}
