@@ -10,9 +10,9 @@ import (
 )
 
 type Tag struct {
-	ID          uint   `json:"id" gorm:"primaryKey"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID          uint    `json:"id" gorm:"primaryKey"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
 }
 
 type RecipeTag struct {
@@ -29,14 +29,52 @@ func TagController(router *gin.Engine, db *gorm.DB) {
 	tags := router.Group("/tags")
 	{
 		tags.GET("/", func(ctx *gin.Context) { getAllTags(ctx, db) })
+		tags.GET("/:param", func(ctx *gin.Context) { getTag(ctx, db) })
 		tags.POST("/", func(ctx *gin.Context) { createTag(ctx, db) })
 		tags.GET("/:param/recipes", func(ctx *gin.Context) { getRecipesByTag(ctx, db) })
+		tags.GET("/:param/ingredients", func(ctx *gin.Context) { getIngredientsByTag(ctx, db) })
 		tags.POST("/recipes", func(ctx *gin.Context) { createRecipeTag(ctx, db) })
 		tags.POST("/ingredients", func(ctx *gin.Context) { createIngredientTag(ctx, db) })
-		tags.GET("/:param/ingredients", func(ctx *gin.Context) { getIngredientsByTag(ctx, db) })
-		tags.GET("/:param", func(ctx *gin.Context) { getTag(ctx, db) })
 		tags.DELETE("/:param", func(ctx *gin.Context) { deleteTag(ctx, db) })
 	}
+}
+
+func getAllTags(ctx *gin.Context, db *gorm.DB) {
+	var tags []Tag
+
+	result := db.Find(&tags)
+
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	}
+
+	if result.RowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "No tags found!"})
+	}
+
+	ctx.JSON(http.StatusOK, tags)
+}
+
+func getTag(ctx *gin.Context, db *gorm.DB) {
+	tag, err := findTag(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Tag not found!"})
+		return
+	}
+	ctx.JSON(http.StatusOK, tag)
+}
+
+func createTag(ctx *gin.Context, db *gorm.DB) {
+	var tag Tag
+	if err := ctx.ShouldBindJSON(&tag); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if result := db.Create(&tag); result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	ctx.JSON(http.StatusCreated, tag)
 }
 
 func getRecipesByTag(ctx *gin.Context, db *gorm.DB) {
@@ -59,6 +97,22 @@ func getRecipesByTag(ctx *gin.Context, db *gorm.DB) {
 	}
 
 	ctx.JSON(http.StatusOK, recipes)
+}
+
+func getIngredientsByTag(ctx *gin.Context, db *gorm.DB) {
+	tag, err := findTag(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Tag not found!"})
+	}
+	var ingredients []Ingredient
+	result := db.Table("ingredient_tag").Joins("JOIN ingredient ON ingredient_tag.ingredient_id = ingredient.id").Where("tag_id = ?", tag.ID).Select("ingredient.*").Find(&ingredients)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	}
+	if result.RowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "No ingredients found!"})
+	}
+	ctx.JSON(http.StatusOK, ingredients)
 }
 
 func createRecipeTag(ctx *gin.Context, db *gorm.DB) {
@@ -87,45 +141,17 @@ func createIngredientTag(ctx *gin.Context, db *gorm.DB) {
 	ctx.JSON(http.StatusCreated, ingredientTag)
 }
 
-func getIngredientsByTag(ctx *gin.Context, db *gorm.DB) {
-	tag, err := findTag(ctx, db)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Tag not found!"})
-	}
-	var ingredients []Ingredient
-	result := db.Table("ingredient_tag").Joins("JOIN ingredient ON ingredient_tag.ingredient_id = ingredient.id").Where("tag_id = ?", tag.ID).Select("ingredient.*").Find(&ingredients)
-	if result.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-	}
-	if result.RowsAffected == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "No ingredients found!"})
-	}
-	ctx.JSON(http.StatusOK, ingredients)
-}
-
-func getAllTags(ctx *gin.Context, db *gorm.DB) {
-	var tags []Tag
-
-	result := db.Find(&tags)
-
-	if result.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-	}
-
-	if result.RowsAffected == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "No tags found!"})
-	}
-
-	ctx.JSON(http.StatusOK, tags)
-}
-
-func getTag(ctx *gin.Context, db *gorm.DB) {
+func deleteTag(ctx *gin.Context, db *gorm.DB) {
 	tag, err := findTag(ctx, db)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Tag not found!"})
 		return
 	}
-	ctx.JSON(http.StatusOK, tag)
+	if result := db.Delete(&tag); result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Tag deleted"})
 }
 
 func findTag(ctx *gin.Context, db *gorm.DB) (*Tag, error) {
@@ -143,30 +169,4 @@ func findTag(ctx *gin.Context, db *gorm.DB) (*Tag, error) {
 	}
 
 	return &tag, nil
-}
-
-func createTag(ctx *gin.Context, db *gorm.DB) {
-	var tag Tag
-	if err := ctx.ShouldBindJSON(&tag); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if result := db.Create(&tag); result.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
-	}
-	ctx.JSON(http.StatusCreated, tag)
-}
-
-func deleteTag(ctx *gin.Context, db *gorm.DB) {
-	tag, err := findTag(ctx, db)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Tag not found!"})
-		return
-	}
-	if result := db.Delete(&tag); result.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "Tag deleted"})
 }

@@ -21,10 +21,10 @@ func IngredientController(router *gin.Engine, db *gorm.DB) {
 	ingredients := router.Group("/ingredients")
 	{
 		ingredients.GET("/", func(ctx *gin.Context) { getAllIngredients(ctx, db) })
-		ingredients.POST("/", func(ctx *gin.Context) { createIngredient(ctx, db) })
 		ingredients.GET("/:param", func(ctx *gin.Context) { getIngredient(ctx, db) })
-		ingredients.GET("/:param/tags", func(ctx *gin.Context) { getTagsByIngredient(ctx, db) })
+		ingredients.POST("/", func(ctx *gin.Context) { createIngredient(ctx, db) })
 		ingredients.GET("/:param/recipes", func(ctx *gin.Context) { getRecipesByIngredient(ctx, db) })
+		ingredients.GET("/:param/tags", func(ctx *gin.Context) { getTagsByIngredient(ctx, db) })
 		ingredients.PUT("/:param", func(ctx *gin.Context) { updateIngredient(ctx, db) })
 		ingredients.DELETE("/:param", func(ctx *gin.Context) { deleteIngredient(ctx, db) })
 	}
@@ -47,6 +47,14 @@ func getAllIngredients(ctx *gin.Context, db *gorm.DB) {
 	ctx.JSON(http.StatusOK, Ingredients)
 }
 
+func getIngredient(ctx *gin.Context, db *gorm.DB) {
+	ingredient, err := findIngredient(ctx, db)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	}
+	ctx.JSON(http.StatusOK, ingredient)
+}
+
 func createIngredient(ctx *gin.Context, db *gorm.DB) {
 	var ingredient Ingredient
 	if err := ctx.ShouldBindJSON(&ingredient); err != nil {
@@ -61,12 +69,26 @@ func createIngredient(ctx *gin.Context, db *gorm.DB) {
 	ctx.JSON(http.StatusCreated, ingredient)
 }
 
-func getIngredient(ctx *gin.Context, db *gorm.DB) {
+func getTagsByIngredient(ctx *gin.Context, db *gorm.DB) {
 	ingredient, err := findIngredient(ctx, db)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Ingredient not found!"})
 	}
-	ctx.JSON(http.StatusOK, ingredient)
+	var Tags []Tag
+	result := db.Table("ingredient_tag").
+		Joins("JOIN tag ON ingredient_tag.tag_id = tag.id").
+		Where("ingredient_tag.ingredient_id = ?", ingredient.ID).
+		Select("tag.*").
+		Find(&Tags)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	if result.RowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "No tags found"})
+		return
+	}
+	ctx.JSON(http.StatusOK, Tags)
 }
 
 func updateIngredient(ctx *gin.Context, db *gorm.DB) {
@@ -99,28 +121,6 @@ func deleteIngredient(ctx *gin.Context, db *gorm.DB) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Recipe deleted"})
-}
-
-func getTagsByIngredient(ctx *gin.Context, db *gorm.DB) {
-	ingredient, err := findIngredient(ctx, db)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Ingredient not found!"})
-	}
-	var Tags []Tag
-	result := db.Table("ingredient_tag").
-		Joins("JOIN tag ON ingredient_tag.tag_id = tag.id").
-		Where("ingredient_tag.ingredient_id = ?", ingredient.ID).
-		Select("tag.*").
-		Find(&Tags)
-	if result.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
-	}
-	if result.RowsAffected == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "No tags found"})
-		return
-	}
-	ctx.JSON(http.StatusOK, Tags)
 }
 
 func findIngredient(ctx *gin.Context, db *gorm.DB) (*Ingredient, error) {
