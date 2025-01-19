@@ -48,19 +48,17 @@ jobs:
           push: true
           tags: tyreesamurai/user-interface:latest
 
-      - name: Build Next.js app for GitHub Pages
+      - name: Extract static files from Next.js image
         run: |
-          cd user-interface
-          npm ci
-          npm run build
-          npm run export  # Generates the static site in `out` directory
-        working-directory: ./user-interface
+          docker create --name nextjs-build tyreesamurai/user-interface:latest
+          docker cp nextjs-build:/usr/src/app/out ./out
+          docker rm nextjs-build
 
       - name: Upload Next.js build artifact
         uses: actions/upload-artifact@v3
         with:
           name: nextjs-build
-          path: ./user-interface/out
+          path: ./out
 
   # Deploy the built Next.js app to GitHub Pages
   deploy:
