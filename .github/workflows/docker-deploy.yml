@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies and build Next.js app
         run: |
           npm ci
-          npm run build
+          npm run build --legacy-peer-deps
           npm run export
         working-directory: ./user-interface
 
