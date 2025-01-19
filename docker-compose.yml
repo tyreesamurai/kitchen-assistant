@@ -2,12 +2,16 @@ services:
   parser-service:
     build:
       context: ./parser-service
+    environment:
+      BACKEND_URL: ${BACKEND_URL}
     ports:
       - "5555:5555"
 
   backend-service:
     build:
       context: ./backend-service
+    environment:
+      DB_DSN: ${DB_DSN}
     ports:
       - "8080:8080"
     depends_on:
@@ -17,6 +21,9 @@ services:
   user-interface:
     build:
       context: ./user-interface
+    environment:
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL}
+      NEXT_PUBLIC_PARSER_URL: ${NEXT_PUBLIC_PARSER_URL}
     ports:
       - "3000:3000"
     depends_on:

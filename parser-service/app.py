@@ -1,4 +1,5 @@
 from parser import AllRecipesParser
+import os
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
@@ -17,8 +18,10 @@ def get_recipe():
         if not url:
             return jsonify({"error": "No URL provided"}, 400)
 
+        BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8080/recipes")
+
         parsed_data = AllRecipesParser(url).parse()
-        response = requests.post("http://localhost:8080/recipes", json=parsed_data)
+        response = requests.post(BACKEND_URL, json=parsed_data)
         return response.json()
     except ValueError as e:
         return jsonify({"error": str(e)}, 400)
