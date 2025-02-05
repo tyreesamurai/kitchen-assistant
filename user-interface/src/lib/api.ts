@@ -1,7 +1,7 @@
 import { Recipe, Ingredient } from "@/lib/types";
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
-const PARSER_URL = process.env.NEXT_PUBLIC_PARSER_URL;
+const SERVER_URL = process.env.SERVER_URL;
+const PARSER_URL = process.env.PARSER_URL;
 
 const api = {
   get: async (endpoint: string) => {

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -13,12 +14,12 @@ export default function RecipeCard(props: { recipe: Recipe }) {
     <Card className="max-w-md mx-auto my-4 shadow-lg rounded-lg overflow-hidden">
       <CardContent className="p-4">
         <div className="relative h-48 w-full bg-gray-200">
-          {/* <Image */}
-          {/*   src={props.recipe.image_url} */}
-          {/*   alt={props.recipe.name} */}
-          {/*   layout="fill" */}
-          {/*   objectFit="cover" */}
-          {/* /> */}
+          <Image
+            src={props.recipe.image_url}
+            alt={props.recipe.name}
+            fill
+            className="object-cover"
+          />
         </div>
         <div className="p-4">
           <CardTitle className="text-2xl font-bold text-gray-800">
