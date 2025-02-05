@@ -1,4 +1,4 @@
-import RecipeCard from "@/components/RecipeCard";
+import RecipeCard from "@/components/cards/RecipeCard";
 import { Recipe } from "@/lib/types";
 
 export default function RecipeCards(props: { recipes: Recipe[] }) {

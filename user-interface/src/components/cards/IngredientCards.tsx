@@ -1,4 +1,4 @@
-import IngredientCard from "@/components/IngredientCard";
+import IngredientCard from "@/components/cards/IngredientCard";
 import { Ingredient } from "@/lib/types";
 
 export default async function IngredientCards(props: {

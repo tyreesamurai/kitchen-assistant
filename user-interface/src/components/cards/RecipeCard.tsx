@@ -5,7 +5,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Recipe } from "@/lib/types";
-import SeeIngredientsButton from "@/components/SeeIngredientsButton";
+import SeeIngredientsButton from "@/components/buttons/SeeIngredientsButton";
 
 export default function RecipeCard(props: { recipe: Recipe }) {
   const instructions = props.recipe.instructions.split("\n");
