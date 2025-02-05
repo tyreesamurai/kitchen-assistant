@@ -1,5 +1,5 @@
 import pytest
-from parser import (
+from all_recipes_parser import (
     AllRecipesParser,
 )
 

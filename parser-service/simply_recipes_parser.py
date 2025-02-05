@@ -4,11 +4,9 @@ from bs4 import BeautifulSoup, Tag
 from typing import cast
 
 
-class AllRecipesParser:
+class SimplyRecipesParser:
     def __init__(self, url):
         self.url = url
-        if "allrecipes.com" not in url:
-            raise ValueError("URL must be from 'allrecipes.com'")
 
         try:
             response = requests.get(url)
@@ -18,12 +16,12 @@ class AllRecipesParser:
             raise ValueError(f"Invalid URL: {e}")
 
     def parse_name(self):
-        tag = self.soup.find(class_="article-heading")
+        tag = self.soup.find(class_="heading__title")
         tag = cast(Tag, tag)
         return tag.text.strip()
 
     def parse_description(self):
-        tag = self.soup.find(class_="article-subheading")
+        tag = self.soup.find(class_="heading__subtitle")
         tag = cast(Tag, tag)
         return tag.text.strip()
 
@@ -31,42 +29,48 @@ class AllRecipesParser:
         return self.url
 
     def parse_instructions(self):
-        tags = self.soup.find_all(class_="mntl-sc-block-html")
-        tags_text = []
-        for tag in tags:
-            tags_text.append(tag.text.strip())
-        return "\n".join(tags_text).replace("\xa0", " ")
+        instructions = self.soup.find_all(class_="mntl-sc-block-group--LI")
+        instructions_text = []
+        step_number = 1
+        for instruction in instructions:
+            insertion = (
+                f"Step {step_number}: {instruction.text.strip().replace('\n', ' ')}"
+            )
+            instructions_text.append(insertion)
+            step_number += 1
+        return (
+            "\n".join(instructions_text)
+            .replace("\xa0", " ")
+            .replace("\xb0", "°")
+            .replace("\u2019", "'")
+        )
 
     def parse_nutrition(self):
         nutrition_object = {}
-        table_row = self.soup.find_all(
-            class_="mm-recipes-nutrition-facts-summary__table-row"
-        )
+        table_row = self.soup.find_all(class_="nutrition-info__table--row")
         for row in table_row:
-            value = row.find(class_="text-body-100-prominent").text.strip().strip("g")
-
-            key = row.find(class_="text-body-100").text.strip().lower()
+            cells = row.find_all(class_="nutrition-info__table--cell")
+            value = cells[0].text.strip().strip("g")
+            key = cells[1].text.strip().lower()
             nutrition_object[key] = int(value)
 
         return nutrition_object
 
     def parse_cooking_time(self):
-        cook_time_details = self.soup.find_all(class_="mm-recipes-details__item")
+        cook_time_container = self.soup.find(class_="project-meta__times-container")
+        cook_time_container = cast(Tag, cook_time_container)
+        cook_time_details = cook_time_container.find_all(class_="meta-text")
         cook_time_object = {}
         for detail in cook_time_details:
             key = (
-                detail.find(class_="mm-recipes-details__label")
+                detail.find(class_="meta-text__label")
                 .text.strip()
                 .lower()
                 .replace(" ", "_")
-                .strip(":")
             )
 
-            if key == "servings":
-                break
-
             total_minutes = 0
-            value_set = detail.find(class_="mm-recipes-details__value").text.strip()
+            value_set = detail.find(class_="meta-text__data").text.strip()
 
             hours_match = re.search(r"(\d+)\s*hrs?", value_set)
             minutes_match = re.search(r"(\d+)\s*mins?", value_set)
@@ -81,27 +85,8 @@ class AllRecipesParser:
 
         return cook_time_object
 
-    def parse_servings(self):
-        cook_time_details = self.soup.find_all(class_="mm-recipes-details__item")
-        for detail in cook_time_details:
-            key = (
-                detail.find(class_="mm-recipes-details__label")
-                .text.strip()
-                .lower()
-                .replace(" ", "_")
-                .strip(":")
-            )
-            if key == "servings":
-                return int(
-                    detail.find(class_="mm-recipes-details__value")
-                    .text.strip()
-                    .split(" ")[0]
-                )
-
     def parse_ingredients(self):
-        ingredients = self.soup.find_all(
-            class_="mm-recipes-structured-ingredients__list-item"
-        )
+        ingredients = self.soup.find_all(class_="structured-ingredients__list-item")
         ingredients_list = []
         for ingredient in ingredients:
             output = {}
@@ -157,18 +142,18 @@ class AllRecipesParser:
 
     def parse_image_url(self):
         image = self.soup.find(class_="primary-image__media")
-        if not image:
-            image = self.soup.find(class_="figure-media")
-            image = cast(Tag, image)
-            image_source = image.find("img")
-            image_source = cast(Tag, image_source)
-            attribute = image_source.get("data-src")
-            return attribute
         image = cast(Tag, image)
         image_source = image.find("img")
         image_source = cast(Tag, image_source)
         attribute = image_source.get("src")
         return attribute
+
+    def parse_servings(self):
+        servings_info = self.soup.find(class_="project-meta__recipe-serving")
+        servings_info = cast(Tag, servings_info)
+        servings = servings_info.find(class_="meta-text__data")
+        servings = cast(Tag, servings)
+        return servings.text.strip()
 
     def parse(self):
         recipe = {
@@ -184,3 +169,10 @@ class AllRecipesParser:
 
         ingredients = self.parse_ingredients()
         return {"recipe": recipe, "ingredients": ingredients}
+
+
+print(
+    SimplyRecipesParser(
+        "https://www.simplyrecipes.com/three-ingredient-brisket-recipe-8758979"
+    ).parse()
+)

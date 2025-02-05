@@ -8,10 +8,12 @@ const NutritionSchema = z.object({
 });
 
 const CookingTimeSchema = z.object({
-  prepTime: z.coerce.number(),
-  cookTime: z.coerce.number(),
-  restTime: z.coerce.number(),
-  totalTime: z.coerce.number(),
+  prep_time: z.coerce.number(),
+  additional_time: z.coerce.number(),
+  cool_time: z.coerce.number(),
+  cook_time: z.coerce.number(),
+  rest_time: z.coerce.number(),
+  total_time: z.coerce.number(),
 });
 
 const RecipeSchema = z.object({

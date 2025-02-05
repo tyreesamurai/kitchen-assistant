@@ -1,6 +1,8 @@
-from parser import AllRecipesParser
-import os
-import requests
+from all_recipes_parser import AllRecipesParser
+from simply_recipes_parser import SimplyRecipesParser
+
+# import os
+# import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 
@@ -18,11 +20,18 @@ def get_recipe():
         if not url:
             return jsonify({"error": "No URL provided"}, 400)
 
-        BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8080/recipes")
+        # BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8080/recipes")
 
-        parsed_data = AllRecipesParser(url).parse()
-        response = requests.post(BACKEND_URL, json=parsed_data)
-        return response.json()
+        if "simplyrecipes.com" in url:
+            parsed_data = SimplyRecipesParser(url).parse()
+        elif "allrecipes.com" in url:
+            parsed_data = AllRecipesParser(url).parse()
+        else:
+            raise ValueError("URL must be from 'allrecipes.com' or 'simplyrecipes.com'")
+
+        # response = requests.post(BACKEND_URL, json=parsed_data)
+
+        return jsonify(parsed_data)
     except ValueError as e:
         return jsonify({"error": str(e)}, 400)
     except Exception as e:

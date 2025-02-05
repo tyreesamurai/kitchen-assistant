@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import api from "@/lib/api";
-import RecipeCard from "@/components/RecipeCard";
+import RecipeCard from "@/components/cards/RecipeCard";
 
 export default function URLInput() {
   const [inputValue, setInputValue] = useState("");
