@@ -9,7 +9,7 @@ import (
 func main() {
 	config.ConnectDatabase()
 
-	config.DB.AutoMigrate(&models.Recipe{}, &models.Ingredient{}, &models.RecipeIngredient{})
+	config.DB.AutoMigrate(&models.Recipe{}, &models.Ingredient{}, &models.RecipeIngredient{}, &models.Tag{}, &models.RecipeTag{}, &models.IngredientTag{})
 
 	router := routes.SetUpRouter()
 	router.Run(":8080")

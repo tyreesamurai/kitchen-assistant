@@ -12,11 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type RecipeRequest struct {
-	Recipe      models.Recipe `json:"recipe"`
-	Ingredients []Ingredient  `json:"ingredients"`
-}
-
 type Ingredient struct {
 	Name     string  `json:"name"`
 	Quantity float32 `json:"quantity"`
@@ -30,7 +25,7 @@ func FindRecipes(ctx *gin.Context) {
 }
 
 func CreateRecipe(ctx *gin.Context) {
-	var rr RecipeRequest
+	var rr models.RecipeRequest
 
 	if err := ctx.ShouldBindJSON(&rr); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -129,5 +124,41 @@ func FindRecipeIngredientsByRecipe(ctx *gin.Context) {
 
 	log.Print(string(resultsJSON))
 
+	ctx.JSON(http.StatusOK, results)
+}
+
+func FindTagsByRecipe(ctx *gin.Context) {
+	param := ctx.Param("param")
+	var results []result
+	if id, err := strconv.Atoi(param); err == nil {
+		err := config.DB.
+			Table("recipes").
+			Select("tags.name").
+			Joins("JOIN recipe_tags ON recipes.id = recipe_tags.recipe_id").
+			Joins("JOIN tags ON recipe_tags.tag_id = tags.id").
+			Where("recipes.id = ?", id).
+			Scan(&results).Error
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+	} else {
+		re := regexp.MustCompile("-")
+		name := re.ReplaceAllString(param, " ")
+		err := config.DB.
+			Table("recipes").
+			Select("tags.name").
+			Joins("JOIN recipe_tags ON recipes.id = recipe_tags.recipe_id").
+			Joins("JOIN tags ON recipe_tags.tag_id = tags.id").
+			Where("recipes.name = ?", name).
+			Scan(&results).Error
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+	}
+	resultsJSON, err := json.Marshal(results)
+	if err != nil {
+		log.Print("Error: " + err.Error())
+	}
+	log.Print(string(resultsJSON))
 	ctx.JSON(http.StatusOK, results)
 }
