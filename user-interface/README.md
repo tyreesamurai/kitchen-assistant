@@ -1,43 +1,36 @@
-# Things that needs to be done
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Home Page
+## Getting Started
 
-### Filter / Search Bar
+First, run the development server:
 
-Okay, firstly I want a filter / search bar at the top of the page
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-This will allow the user to filter the recipes by many different things, such as: name, cooking_time, nutrition, tags, etc.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Recipe List
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-Then I want a list of all the recipes to be displayed below the search bar (in a grid format would be good) with a small image of the recipe, the name of the recipe, the cooking time, and the nutrition information.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-I don't know how exactly I want to do this, but I want the user to be able to click on a recipe & be taken to a page with more information about that recipe on it, including the ingredients
+## Learn More
 
-### Recipe Selection
+To learn more about Next.js, take a look at the following resources:
 
-I want the user to be able to select recipes, & then generate a shopping list from the selected recipes
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-This will mean it's important that if the user leaves & comes back to the page, that the selected recipes are still selected
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Recipe Page
+## Deploy on Vercel
 
-For the recipe page, I want everything to be displayed in a nice format
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Also very importantly, I need the user to be able to edit the recipe where it is & save it
-
-So there should be something like an edit recipe button & that will turn everything into inputs that they can use to edit the recipe
-
-One submit the recipe should be updated in the database
-
-## About Ingredients
-
-Maybe it would be good to call some API that has information about the ingredients that exist in stores, so that the user can like scan the barcode & ingredient information comes up
-
-This would be good so that I can model that data within my database
-
-## Shopping List Page
-
-When the user generates the shopping list, I of course want them to be able to view & edit it
-
-This way, they can remove items they already have, or add items they want to buy
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
