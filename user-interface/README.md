@@ -22,7 +22,13 @@ This will mean it's important that if the user leaves & comes back to the page, 
 
 ## Recipe Page
 
-I don't really know what to do here just yet, but something can be done
+For the recipe page, I want everything to be displayed in a nice format
+
+Also very importantly, I need the user to be able to edit the recipe where it is & save it
+
+So there should be something like an edit recipe button & that will turn everything into inputs that they can use to edit the recipe
+
+One submit the recipe should be updated in the database
 
 ## About Ingredients
 

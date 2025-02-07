@@ -18,7 +18,9 @@ func SetUpRouter() *gin.Engine {
 	recipes.GET("/:param", controllers.FindRecipe)
 	recipes.POST("", controllers.CreateRecipe)
 	recipes.GET("/:param/ingredients", controllers.FindRecipeIngredientsByRecipe)
+	recipes.POST("/:param/ingredients", controllers.CreateRecipeIngredient)
 	recipes.GET("/:param/tags", controllers.FindTagsByRecipe)
+	recipes.POST("/:param/tags", controllers.CreateRecipeTag)
 
 	ingredients := router.Group("/ingredients")
 

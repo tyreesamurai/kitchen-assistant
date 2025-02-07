@@ -10,3 +10,13 @@ type IngredientRequest struct {
 	Quantity float32 `json:"quantity"`
 	Unit     string  `json:"unit"`
 }
+
+type RecipeTagRequest struct {
+	RecipeID uint   `json:"recipe_id"`
+	Name     string `json:"name"`
+}
+
+type IngredientTagRequest struct {
+	IngredientID uint   `json:"ingredient_id"`
+	Name         string `json:"name"`
+}

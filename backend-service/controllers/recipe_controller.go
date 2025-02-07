@@ -81,15 +81,9 @@ func FindRecipe(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, recipe)
 }
 
-type result struct {
-	Name     string
-	Quantity float32
-	Unit     string
-}
-
 func FindRecipeIngredientsByRecipe(ctx *gin.Context) {
 	param := ctx.Param("param")
-	var results []result
+	var results []models.IngredientRequest
 
 	if id, err := strconv.Atoi(param); err == nil {
 		err := config.DB.
@@ -128,37 +122,10 @@ func FindRecipeIngredientsByRecipe(ctx *gin.Context) {
 }
 
 func FindTagsByRecipe(ctx *gin.Context) {
-	param := ctx.Param("param")
-	var results []result
-	if id, err := strconv.Atoi(param); err == nil {
-		err := config.DB.
-			Table("recipes").
-			Select("tags.name").
-			Joins("JOIN recipe_tags ON recipes.id = recipe_tags.recipe_id").
-			Joins("JOIN tags ON recipe_tags.tag_id = tags.id").
-			Where("recipes.id = ?", id).
-			Scan(&results).Error
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		}
-	} else {
-		re := regexp.MustCompile("-")
-		name := re.ReplaceAllString(param, " ")
-		err := config.DB.
-			Table("recipes").
-			Select("tags.name").
-			Joins("JOIN recipe_tags ON recipes.id = recipe_tags.recipe_id").
-			Joins("JOIN tags ON recipe_tags.tag_id = tags.id").
-			Where("recipes.name = ?", name).
-			Scan(&results).Error
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		}
-	}
-	resultsJSON, err := json.Marshal(results)
-	if err != nil {
-		log.Print("Error: " + err.Error())
-	}
-	log.Print(string(resultsJSON))
-	ctx.JSON(http.StatusOK, results)
+}
+
+func CreateRecipeTag(ctx *gin.Context) {
+}
+
+func CreateRecipeIngredient(ctx *gin.Context) {
 }
