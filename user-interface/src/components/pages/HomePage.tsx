@@ -1,9 +1,11 @@
+import RecipePage from "@/components/pages/RecipePage";
+import api from "@/lib/api";
+
 export default async function HomePage() {
+  const recipes = await api.recipes.getAll();
   return (
     <>
-      <div>
-        <h1>Just here for a second</h1>
-      </div>
+      <RecipePage recipes={recipes} />
     </>
   );
 }
