@@ -4,58 +4,62 @@ const SERVER_URL = process.env.SERVER_URL;
 const PARSER_URL = process.env.PARSER_URL;
 
 const api = {
-  recipes: {
-    getAll: async () => {
-      const response = await fetch(`${SERVER_URL}/recipes`);
-      return (await response.json()) as Recipe[];
-    },
-    getByParam: async (param: string) => {
-      const response = await fetch(`${SERVER_URL}/recipes/${param}`);
-      return (await response.json()) as Recipe;
-    },
-    post: async (recipe: Recipe, ingredients: Ingredient[]) => {
-      const response = await fetch(`${SERVER_URL}/recipes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ recipe, ingredients }),
-      });
-      return response.json();
-    },
+  get: async (endpoint: string) => {
+    const response = await fetch(`${SERVER_URL}${endpoint}`);
+    return await response.json();
   },
-  ingredients: {
-    getAll: async () => {
-      const response = await fetch(`${SERVER_URL}/ingredients`);
-      return (await response.json()) as Ingredient[];
-    },
-    getByParam: async (param: string) => {
-      const response = await fetch(`${SERVER_URL}/ingredients/${param}`);
-      return (await response.json()) as Ingredient;
-    },
-    post: async (ingredient: Ingredient) => {
-      const response = await fetch(`${SERVER_URL}/ingredients`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ingredient }),
-      });
-      return response.json();
-    },
-  },
-  parseUrl: async (url: string) => {
-    const response = await fetch(`${PARSER_URL}`, {
+  post: async (endpoint: string, data: unknown) => {
+    const response = await fetch(`${SERVER_URL}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify(data),
     });
-    return (await response.json()) as {
-      recipe: Recipe;
-      ingredients: Ingredient[];
-    };
+    return await response.json();
+  },
+  put: async (endpoint: string, data: unknown) => {
+    const response = await fetch(`${SERVER_URL}${endpoint}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  },
+  delete: async (endpoint: string) => {
+    const response = await fetch(`${SERVER_URL}${endpoint}`, {
+      method: "DELETE",
+    });
+    return await response.json();
+  },
+  recipes: {
+    fetchAll: async () => {
+      return (await api.get("/recipes")) as Recipe[];
+    },
+    fetchByParam: async (param: string) => {
+      return (await api.get(`/recipes/${param}`)) as Recipe;
+    },
+    create: async (data: Recipe) => {
+      return api.post("/recipes", data);
+    },
+    getIngredients: async (param: string) => {
+      return (await api.get(`/recipes/${param}/ingredients`)) as Ingredient[];
+    },
+  },
+  parser: {
+    getRecipe: async (data: string) => {
+      console.log(PARSER_URL);
+      const response = await fetch(`${PARSER_URL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: data }),
+      });
+      return await response.json();
+    },
   },
 };
 
